@@ -142,7 +142,5 @@ venn.plot <- venn.diagram(
 # Plot the diagram
 grid.draw(venn.plot)
 
-###
-library(usethis)
 
 
