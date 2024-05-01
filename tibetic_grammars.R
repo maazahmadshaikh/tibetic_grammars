@@ -1,4 +1,4 @@
-setwd("D:/01_Projects/01_PhD/03_Analysis/02_TibeticGrammarsAnalysis")
+setwd("D:/01_Projects/01_PhD/03_Analysis/02_TGR/tibetic_grammars")
 
 library(readxl)
 library(dplyr)
