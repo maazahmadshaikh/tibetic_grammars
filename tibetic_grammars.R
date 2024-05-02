@@ -205,10 +205,6 @@ print(ggplot_object)
 #Methodology LS v/s count of grammars
 #####################################
 
-library(readxl)
-library(dplyr)
-library(ggplot2)
-
 # Load the data
 tibetic_grammars <- read_excel("Tibetic-Grammars_Review_Master.xlsx")
 
@@ -238,7 +234,7 @@ bar_plot <- ggplot(likert_counts, aes(x = as.factor(`methodology_LS`), y = count
                     name = "Type of grammar",
                     labels = c("Dissertation", "Published grammar")) +
   labs(
-    x = "Methodology (Likert score)",
+    x = "Methodology (Likert scale score)",
     y = "Count of grammars"
   ) +
   theme_minimal() +
@@ -393,7 +389,7 @@ ggplot_object <- ggplot(tibetic_grammars, aes(x = period, y = `texts_LS`, fill =
 print(ggplot_object)
 
 #####################################
-#Example citation LS v/s count of grammars
+#Texts LS v/s count of grammars
 #####################################
 
 # Load the data
@@ -439,4 +435,123 @@ bar_plot <- ggplot(likert_counts, aes(x = as.factor(`texts_LS`), y = count, fill
 
 # Print the plot
 print(bar_plot)
+
+
+
+################################################
+# BINARY VARIABLES  (Y/N)
+################################################
+
+################################################
+#Time collecting data
+################################################
+
+
+##########################
+# Bar plot for time period
+###########################
+library(readxl)
+library(dplyr)
+library(ggplot2)
+
+# Load the data
+tibetic_grammars <- read_excel("Tibetic-Grammars_Review_Master.xlsx")
+
+# Preprocessing the data
+tibetic_grammars <- tibetic_grammars %>%
+  mutate(
+    data_coll_time_mention = ifelse(data_coll_time_mention %in% c("Y", "U"), "Yes", "No"),
+    period = factor(period, levels = c("E", "M", "L"), labels = c("Early", "Middle", "Late")),
+    is_diss = ifelse(is_diss == "Y", "Dissertation", "Published Grammar"),
+    is_diss = factor(is_diss, levels = c("Dissertation", "Published Grammar"))
+  )
+
+# Count by period, data collection mention, and dissertation status
+period_mention_diss_counts <- tibetic_grammars %>%
+  group_by(period, data_coll_time_mention, is_diss) %>%
+  summarise(Count = n(), .groups = 'drop')
+
+print(period_mention_diss_counts)
+
+# Bar plot for time period with stacked 'Yes' and 'No', and separate bars for Dissertation and Published Grammar
+period_plot <- ggplot(period_mention_diss_counts, aes(x = period, y = Count, fill = data_coll_time_mention)) +
+  geom_bar(stat = "identity", position = position_dodge2(width = 0.9, preserve = "single"), aes(group = interaction(is_diss, data_coll_time_mention)), width = .5) +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "green"),
+                    name = "Mention of data collection time",
+                    labels = c("No","Yes")) +
+  facet_wrap(~is_diss, scales = "free_x", nrow = 1) +
+  labs(x = "Period of publishing/defense", y = "Count of grammars") +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(size = 12, face = "bold"),
+    axis.title.x = element_text(size = 12, face = "bold", margin = margin(t = 10)),
+    axis.text.y = element_text(size = 12, face = "bold"),
+    axis.title.y = element_text(size = 12, face = "bold", margin = margin(r = 10)),
+    strip.background = element_blank(),
+    strip.text.x = element_text(size = 12, face = "bold"),
+    plot.title = element_text(hjust = 0.5) # Center the title
+  )
+
+# Print the plot
+print(period_plot)
+
+##############################
+# Count by dissertation status
+status_counts <- tibetic_grammars %>%
+  group_by(is_diss, data_coll_time_mention) %>%
+  summarise(Count = n(), .groups = 'drop')
+
+print(status_counts)
+
+# Bar plot for dissertation status
+status_plot <- ggplot(status_counts, aes(x = is_diss, y = Count, fill = data_coll_time_mention)) +
+  geom_bar(stat = "identity", position = position_dodge(), width = .5) +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "green"),
+                    name = "Mention of data collection time",
+                    labels = c("No","Yes")) +
+  labs(x = "Type of grammar", y = "Count of grammars") +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 6), labels = scales::label_number(auto = TRUE)) +  # Adjust to show integer values
+  theme_minimal()+
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(size = 12, face = "bold"),
+    axis.title.x = element_text(size = 12, face = "bold", margin = margin(t = 10)),
+    axis.text.y = element_text(size = 12, face = "bold"),
+    axis.title.y = element_text(size = 12, face = "bold", margin = margin(r = 10)),
+    strip.background = element_blank(),
+    strip.text.x = element_text(size = 12, face = "bold"),
+    plot.title = element_text(hjust = 0.5) # Center the title
+  )
+
+# Print the plot for Dissertation Status
+print(status_plot)
+
+################################################
+#Find out the number of U in the data_coll_time_mention" column
+
+unclear_counts <- tibetic_grammars %>%
+  filter(data_coll_time_mention == "U") %>%
+  summarise(Count = n())
+
+print(unclear_counts)
+
+#Generate a sumamry of the items in the data_coll_time_mention column
+print(table(tibetic_grammars$data_coll_time_mention))
+
+# Generate counts of endangered status per branch
+endangered_counts <- tibetic_grammars %>%
+  group_by(branch, endg) %>%
+  summarise(Count = n(), .groups = 'drop')
+
+
+
+# Preprocessing the data
+tibetic_grammars <- tibetic_grammars %>%
+  mutate(
+    data_coll_time_mention = ifelse(data_coll_time_mention %in% c("Y", "U"), "Yes", "No"),
+    period = factor(period, levels = c("E", "M", "L"), labels = c("Early", "Middle", "Late")),
+    is_diss = ifelse(is_diss == "Y", "Dissertation", "Published Grammar"),
+    is_diss = factor(is_diss, levels = c("Dissertation", "Published Grammar"))
+  )
 
