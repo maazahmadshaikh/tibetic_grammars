@@ -1,11 +1,10 @@
-
-
-
-
-
 ################################################
 # METHODOLOGY
 ################################################
+library(readxl)
+library(dplyr)
+library(ggplot2)
+
 
 ################################################
 #Methodology LS v/s Publication Period: Box Plot
@@ -285,11 +284,6 @@ ethics_period_plot <- ggplot(ethics_by_period, aes(x = period, y = Count, fill =
 
 # Print the plot
 print(ethics_period_plot)
-
-
-
-
-
 
 
 
