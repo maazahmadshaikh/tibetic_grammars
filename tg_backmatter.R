@@ -1,12 +1,9 @@
-library(readxl)
-library(dplyr)
-library(ggplot2)
-
-
-
 ###########################################################################################################
 # TEXTS
 ###########################################################################################################
+library(readxl)
+library(dplyr)
+library(ggplot2)
 
 
 #####################################################
@@ -109,7 +106,7 @@ tibetic_grammars <- read_excel("Tibetic-Grammars_Review_Master.xlsx")
 # Preprocessing the data
 tibetic_grammars <- tibetic_grammars %>%
   mutate(
-    glossary = ifelse(glossary %in% c("Y", "U"), "Yes", "No"),
+    glossary = ifelse(glossary %in% c("Y"), "Yes", "No"),
     period = factor(period, levels = c("E", "M", "L"), labels = c("Early", "Middle", "Late")),
     is_diss = ifelse(is_diss == "Y", "Dissertation", "Published Grammar"),
     is_diss = factor(is_diss, levels = c("Dissertation", "Published Grammar"))
@@ -120,7 +117,7 @@ glossary_counts <- tibetic_grammars %>%
   group_by(is_diss, glossary) %>%
   summarise(Count = n(), .groups = 'drop')
 
-print(status_counts)
+print(glossary_counts)
 
 # Count by period, data collection mention, and dissertation status
 period_glossary <- tibetic_grammars %>%
@@ -164,7 +161,7 @@ tibetic_grammars <- read_excel("Tibetic-Grammars_Review_Master.xlsx")
 # Preprocessing the data
 tibetic_grammars <- tibetic_grammars %>%
   mutate(
-    index = ifelse(index %in% c("Y", "U"), "Yes", "No"),
+    index = ifelse(index %in% c("Y"), "Yes", "No"),
     period = factor(period, levels = c("E", "M", "L"), labels = c("Early", "Middle", "Late")),
     is_diss = ifelse(is_diss == "Y", "Dissertation", "Published Grammar"),
     is_diss = factor(is_diss, levels = c("Dissertation", "Published Grammar"))
@@ -175,7 +172,7 @@ index_counts <- tibetic_grammars %>%
   group_by(is_diss, index) %>%
   summarise(Count = n(), .groups = 'drop')
 
-print(status_counts)
+print(index_counts)
 
 # Count by period, data collection mention, and dissertation status
 period_index <- tibetic_grammars %>%

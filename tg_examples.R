@@ -237,6 +237,121 @@ period_abbreviations_plot <- ggplot(period_abbreviations, aes(x = period, y = Co
 print(period_abbreviations_plot)
 
 
+###################################################
+#source of data v/s count of grammars: Venn Diagram
+###################################################
+
+library(readxl)
+library(dplyr)
+library(VennDiagram)
+library(grid)
+
+# Load the data
+tibetic_grammars <- read_excel("Tibetic-Grammars_Review_Master.xlsx")
+
+# Preprocess and categorize data sources
+tibetic_grammars <- tibetic_grammars %>%
+  mutate(
+    is_diss = ifelse(is_diss == "Y", "Dissertation", "Published Grammar"),
+    E = grepl("E", example_source),
+    NS = grepl("NS", example_source),
+    OS = grepl("OS", example_source),
+    NM = grepl("NM", example_source)
+  )
+
+# Separate data into dissertations and published grammars
+dissertations <- filter(tibetic_grammars, is_diss == "Dissertation")
+published_grammars <- filter(tibetic_grammars, is_diss == "Published Grammar")
+
+# Function to create Venn diagram
+create_venn <- function(data, title) {
+  indices <- list(
+    E = which(data$E),
+    NS = which(data$NS),
+    OS = which(data$OS),
+    NM = which(data$NM)
+  )
+  
+  venn.plot <- venn.diagram(
+    x = indices,
+    filename = NULL,
+    category.names = c("E", "NS", "OS", "NM"),
+    fill = c("lightblue", "pink", "yellow", "lightgreen"),
+    alpha = 0.5,
+    label.col = "black",
+    cex = 1.5,
+    fontface = "bold",
+    cat.cex = 2,
+    cat.col = c("skyblue", "salmon", "goldenrod", "green"),
+    cat.fontface = "bold",
+    cat.default.pos = "outer",
+    cat.dist = c(0.06, 0.06, 0.1, 0.09),
+    lwd = 2,
+    main.title = title,
+    main.cex = 2
+  )
+  
+  # Plot the Venn diagram
+  grid.draw(venn.plot)
+}
+
+# Create Venn diagrams for each subset
+create_venn(dissertations, "Venn Diagram for Dissertations")
+create_venn(published_grammars, "Venn Diagram for Published Grammars")
+
+###################################################
+#Bar plot of sources of data across different periods of publishing/defense
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+
+# Load the data
+tibetic_grammars <- read_excel("Tibetic-Grammars_Review_Master.xlsx")
+
+# Preprocess data to categorize data sources
+tibetic_grammars <- tibetic_grammars %>%
+  mutate(
+    is_diss = ifelse(is_diss == "Y", "Dissertation", "Published Grammar"),
+    period = factor(period, levels = c("E", "M", "L"), labels = c("Early", "Middle", "Late")),
+    Source = case_when(
+      grepl("E", example_source) & grepl("NS", example_source) & grepl("OS", example_source) ~ "E+NS+OS",
+      grepl("E", example_source) & grepl("NS", example_source) ~ "E+NS",
+      grepl("E", example_source) & !grepl("NS", example_source) & !grepl("OS", example_source) ~ "E",
+      grepl("NS", example_source) & !grepl("E", example_source) & !grepl("OS", example_source) ~ "NS",
+      !grepl("NS", example_source) & !grepl("E", example_source) & !grepl("OS", example_source) ~ "NM",
+      TRUE ~ as.character(example_source)  # catch any other formats as they are
+    )
+  ) %>%
+  group_by(period, is_diss, Source) %>%
+  summarise(Count = n(), .groups = 'drop')
+
+# Create the bar plot with abbreviated legend labels
+example_source_plot <- ggplot(tibetic_grammars, aes(x = period, y = Count, fill = Source)) +
+  geom_bar(stat = "identity", position = position_dodge2(preserve = "single", width = 0.9), width = 1) +  # Adjust bar width and dodge width
+  scale_fill_brewer(palette = "Set3", name = "Data Source",
+                    labels = c("E" = "E", "E+NS" = "E+NS", "NS" = "NS", 
+                               "E+NS+OS" = "E+NS+OS", "NM" = "NM")) +
+  facet_wrap(~is_diss, scales = "free_y") +
+  labs(x = "Period of publishing/defense", y = "Count of grammars") +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 5), labels = scales::label_number(auto = TRUE)) +  # Adjust to show integer values
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(size = 12, face = "bold"),
+    axis.title.x = element_text(size = 12, face = "bold", margin = margin(t = 10)),
+    axis.text.y = element_text(size = 12, face = "bold"),
+    axis.title.y = element_text(size = 12, face = "bold", margin = margin(r = 10)),
+    strip.background = element_blank(),
+    strip.text.x = element_text(size = 12, face = "bold"),
+    plot.title = element_text(hjust = 0.5) # Center the title
+  )
+
+# Print the plot
+print(example_source_plot)
+
+
+
 
 #####################################################
 #Example citation LS v/s Publication Period: Box Plot
@@ -265,10 +380,11 @@ ggplot_object <- ggplot(tibetic_grammars, aes(x = period, y = `example_citation_
                     labels = c("Dissertation", "Published grammar")) +
   labs(
     x = "Period of publishing/defense",
-    y = "Average Likert scale score for example citation"
+    y = "Average Likert scale scores"
   ) +
   theme_minimal() +
   theme(
+    legend.position = "top",
     axis.text.x = element_text(size = 12, face = "bold"),  # Increase font size for x-axis labels
     axis.title.x = element_text(size = 12, face = "bold", margin = margin(t = 10)),  # Increase space between axis labels and title
     axis.text.y = element_text(size = 12, face = "bold"),
@@ -277,6 +393,9 @@ ggplot_object <- ggplot(tibetic_grammars, aes(x = period, y = `example_citation_
 
 # Print the plot
 print(ggplot_object)
+
+
+
 
 #####################################
 #Example citation LS v/s count of grammars
@@ -311,7 +430,7 @@ bar_plot <- ggplot(likert_counts, aes(x = as.factor(`example_citation_LS`), y = 
                     name = "Type of grammar",
                     labels = c("Dissertation", "Published grammar")) +
   labs(
-    x = "Example citation (Likert scale score)",
+    x = "Example citation (Likert scale scores)",
     y = "Count of grammars"
   ) +
   theme_minimal() +
